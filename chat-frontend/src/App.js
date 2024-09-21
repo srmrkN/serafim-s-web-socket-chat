@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import useWebSocket from 'react-use-websocket';
 import './App.css';
 import Register from './Register';
-import '@fortawesome/fontawesome-free/css/all.min.css'; // Import Font Awesome
+import Header from './Header';
+import ChatWindow from './ChatWindow';
+import InputContainer from './InputContainer';
 
 const generateClientId = () => Math.floor(Math.random() * 10000);
 
@@ -17,8 +19,7 @@ function App() {
     });
     const [message, setMessage] = useState('');
     const [chat, setChat] = useState([]);
-    const [errorMessage, setErrorMessage] = useState(''); // State for error message
-    const chatWindowRef = useRef(null);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         if (clientId) {
@@ -83,7 +84,7 @@ function App() {
     }, [lastMessage, sendMessage]);
 
     const handleSendMessage = () => {
-        if (readyState === WebSocket.OPEN) {
+        if (readyState === WebSocket.OPEN && message.trim()) {
             const messageObject = {
                 username: nickname,
                 type: 'chat',
@@ -92,24 +93,18 @@ function App() {
             console.log(`Sending message: ${JSON.stringify(messageObject)}`);
             sendMessage(JSON.stringify(messageObject));
             setMessage('');
-            setErrorMessage(''); // Clear error message
+            setErrorMessage('');
         } else {
             console.log('WebSocket is not open. Message not sent.');
-            setErrorMessage('WebSocket is not open. Message not sent.'); // Set error message
+            setErrorMessage('WebSocket is not open. Message not sent.');
         }
     };
 
     const handleKeyPress = (event) => {
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && message.trim()) {
             handleSendMessage();
         }
     };
-
-    useEffect(() => {
-        if (chatWindowRef.current) {
-            chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
-        }
-    }, [chat]);
 
     const handleRegister = (nickname) => {
         console.log(`Registering nickname: ${nickname}`);
@@ -123,7 +118,6 @@ function App() {
         sessionStorage.removeItem('nickname');
         setClientId(null);
         setNickname('');
-        // Close the WebSocket connection
         if (sendMessage) {
             sendMessage('close');
         }
@@ -135,13 +129,7 @@ function App() {
 
     return (
         <div className="App">
-            <header className="chat-header">
-                <span className="user-name">{nickname}</span>
-                <span className="connection-status">{getConnectionStatus()}</span>
-                <button className="exit-button" onClick={handleExit}>
-                    <i className="fas fa-sign-out-alt"></i> {/* Font Awesome icon */}
-                </button>
-            </header>
+            <Header nickname={nickname} getConnectionStatus={getConnectionStatus} handleExit={handleExit} />
             <h1>WebSocket Chat</h1>
             {errorMessage && (
                 <>
@@ -155,38 +143,14 @@ function App() {
                     </div>
                 </>
             )}
-            <div className="chat-window">
-                <div className="chat-content" ref={chatWindowRef}>
-                    {chat.map((msg, index) => {
-                        const isSystemMessage = msg.startsWith('SYSTEM: ');
-                        const [client, ...messageParts] = msg.split(': ');
-                        const message = messageParts.join(': ');
-                        const isOwnMessage = client === nickname;
-
-                        return (
-                            <div key={index} className={`chat-message ${isSystemMessage ? 'system-message' : isOwnMessage ? 'own-message' : 'other-message'}`}>
-                                {!isSystemMessage && !isOwnMessage && <div className="client-name">{client}</div>}
-                                <div className="message-content">{message}</div>
-                            </div>
-                        );
-                    })}
-                </div>
-                <div className="input-container">
-                    <input
-                        type="text"
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        className="message-input"
-                        style={{ flexGrow: message.trim() ? 0.9 : 1 }}
-                    />
-                    <button
-                        onClick={handleSendMessage}
-                        className={`send-button ${message.trim() ? 'visible' : 'hidden'}`}
-                    >
-                        Send
-                    </button>
-                </div>
+            <div className="chat-container">
+                <ChatWindow chat={chat} nickname={nickname} />
+                <InputContainer
+                    message={message}
+                    setMessage={setMessage}
+                    handleSendMessage={handleSendMessage}
+                    handleKeyPress={handleKeyPress}
+                />
             </div>
         </div>
     );

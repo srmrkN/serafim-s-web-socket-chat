@@ -64,9 +64,13 @@ html, body {
 
 /* Chat Window Styles */
 .chat-window {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 10px 0 0;
+}
+.chat-container {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   width: 95%;
   max-width: 800px;
   height: 600px;
@@ -74,7 +78,7 @@ html, body {
   background-color: #ffffff;
   border-radius: 8px;
   margin-top: 70px;
-  position: relative; /* Ensure relative positioning for sticky child */
+  position: relative;
 }
 
 /* Chat Message Styles */
@@ -145,14 +149,12 @@ html, body {
   width: 100%;
   border-top: 1px solid #ccc;
   padding: 10px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
   box-sizing: border-box;
   justify-content: space-between;
   background-color: #ffffff;
   z-index: 10;
-  position: sticky; /* Ensure input container stays at the bottom */
-  bottom: 0; /* Stick to the bottom of the chat window */
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .message-input {
